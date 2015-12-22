@@ -13,7 +13,7 @@ import {ModalComponent} from './components/ejemplos/modal/modal.component';
   {path: '/About',    component: About,     as: 'About'},
   {path: '/Contacto', component: Contacto,  as: 'Contacto'},
   {path: '/Asiento',  component:AsientoComponent, as:'Asiento'},
-  {path: '/ModalAsiento', component: ModalComponent, as:'ModalAsiento'}
+  {path: '/ModalEjemplo', component: ModalComponent, as:'ModalEjemplo'}
 ])
 @Component({
     selector: 'my-app',
