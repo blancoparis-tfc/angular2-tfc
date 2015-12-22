@@ -1,0 +1,37 @@
+<div class="page-header">
+  <h1>Asiento</h1>
+</div>
+<p class="lead">
+  En este pantalla daremos {{estado}} {{estado==='crear'}}
+</p>
+<div [hidden]="!isVisibleForm()">
+    <form (ngSubmit)="onSubmit()" #asientoForm="ngForm" >
+      <div class="row">
+        <div class="form-group" class="col-md-6" >
+          <label > id </label>
+          <input type="text" class="form-control" required
+            [(ngModel)]="modelo.id"
+             ngControl="id" #id="ngForm"/>
+           <div [hidden]="id.valid" class="alert alert-danger">
+              El id es un campo obligatorio
+           </div>
+        </div>
+        <div class="form-group" class="col-md-6">
+            <label> Descripcion </label>
+            <input type="text" class="form-control"
+              [(ngModel)]="modelo.descripcion"
+               ngControl="descripcion"/>
+        </div>
+      </div>
+      <!-- Inicio de la tabla -->
+      <dbp-grid [columnas]="columnas" [filas]="modelo.lineas"></dbp-grid>
+      <button type="submit" class="btn btn-default"
+        [disabled]="!asientoForm.form.valid"
+        >Crear</button>
+    </form>
+</div>
+<dbp-block [mensaje]="'Espere por fovor mientras se crea el asiento'" [hidden]="!isEspera()">
+</dbp-block>
+<div [hidden]="!isCreado()">
+    operación realizada correctamente
+</div>

@@ -1,0 +1,8 @@
+{
+  "id":1,
+  "descripcion":"Es un asiento de ejemplo",
+  "lineas":[
+      {"id":1,"cuenta":"1000","concepto":"desc concepto","importe":215,"tipo":"D"},
+      {"id":2,"cuenta":"2000","concepto":"desc concepto","importe":215,"tipo":"H"}
+  ]
+}

@@ -1,0 +1,23 @@
+<table class="table table-striped">
+    <thead>
+      <tr>
+          <th *ngFor="#columna of columnas">
+              <a (click)="ordenar(columna)" >{{columna.descripcion}}
+              <span
+                  class="glyphicon"
+                  [class.glyphicon-sort-by-attributes]="esColumnaActiva(columna) && columna.direccion===1"
+                  [class.glyphicon-sort-by-attributes-alt]="esColumnaActiva(columna) && columna.direccion===-1"
+                  [class.glyphicon-sort]="!esColumnaActiva(columna)"
+                  [class.grid-column-no-selected]="!esColumnaActiva(columna)"
+                  aria-hidden="true"></span>
+              </a>
+          </th>
+      </tr>
+    </thead>
+    <tr *ngFor="#fila of filas">
+        <td *ngFor="#columna of columnas">
+          <span  *ngIf="columna.tipo==='noEditable'">{{fila[columna.nombre]}}</span>
+          <input *ngIf="columna.tipo==='Editable'" type="text" class="form-control" [(ngModel)]="fila[columna.nombre]"/>
+        </td>
+    </tr>
+</table>
