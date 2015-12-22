@@ -34,6 +34,7 @@
         "app/components/comun/pie.component.ts",
         "app/components/contabilidad/asientos/asiento.component.ts",
         "app/components/contacto/contacto.component.ts",
+        "app/components/ejemplos/modal/modal.component.ts",
         "app/components/inicio/inicio.component.ts",
         "app/core/resultado.ts",
         "app/services/contabilidad/asiento/asiento.service.ts",
