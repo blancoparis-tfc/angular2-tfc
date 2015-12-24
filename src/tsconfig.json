@@ -37,6 +37,7 @@
         "app/components/ejemplos/modal/modal.component.ts",
         "app/components/inicio/inicio.component.ts",
         "app/core/resultado.ts",
+        "app/directives/comun/modal/modal.directive.ts",
         "app/services/contabilidad/asiento/asiento.service.ts",
         "app/services/contabilidad/asiento/asiento.ts",
         "app/services/contabilidad/asiento/lineaAsiento.ts",
