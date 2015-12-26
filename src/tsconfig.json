@@ -31,7 +31,6 @@
         "app/components/comun/grid/columna.ts",
         "app/components/comun/grid/grid.ts",
         "app/components/comun/grid/ordernar.ts",
-        "app/components/comun/modal/dialogo.components.ts",
         "app/components/comun/pie.component.ts",
         "app/components/contabilidad/asientos/asiento.component.ts",
         "app/components/contacto/contacto.component.ts",
