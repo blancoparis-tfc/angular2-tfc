@@ -9,10 +9,12 @@ import {HTTP_PROVIDERS} from 'angular2/http';
 import {AppComponent} from './app.component';
 import {MenuService} from './services/menu/menu.service';
 import {AsientoService} from './services/contabilidad/asiento/asiento.service';
+import {DbpDialogo} from './core/modal/dialogo';
 
 bootstrap(AppComponent,[
     ROUTER_PROVIDERS // Provedor de enrutamiento
     ,HTTP_PROVIDERS // Provedor del recurso http
     ,MenuService,AsientoService
+    ,DbpDialogo
     ,provide(LocationStrategy, {useClass: HashLocationStrategy})
   ]);
