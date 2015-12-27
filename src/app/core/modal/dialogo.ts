@@ -1,7 +1,7 @@
 import {
-     DynamicComponentLoader,Directive,Host,SkipSelf,forwardRef
-    ,Injectable,ElementRef,Injector,provide,ViewEncapsulation
-    ,Component,ComponentRef} from 'angular2/core';
+     DynamicComponentLoader,Directive,Host,SkipSelf,forwardRef,Injectable,
+     ElementRef,Injector,provide,ViewEncapsulation,Component,ComponentRef}
+     from 'angular2/core';
 import {PromiseWrapper,Promise} from 'angular2/src/facade/async';
 import {Type,isPresent} from 'angular2/src/facade/lang';
 import { KeyboardEvent} from 'angular2/src/facade/browser';
