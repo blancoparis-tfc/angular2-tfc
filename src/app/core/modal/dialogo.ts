@@ -1,39 +1,23 @@
 import {
-     DynamicComponentLoader
-    ,Injectable
-    ,ElementRef
-    ,Injector
-    ,provide
-    ,Component
-    ,ComponentRef} from 'angular2/core';
+     DynamicComponentLoader,Directive,Host,SkipSelf,forwardRef
+    ,Injectable,ElementRef,Injector,provide,ViewEncapsulation
+    ,Component,ComponentRef} from 'angular2/core';
 import {PromiseWrapper,Promise} from 'angular2/src/facade/async';
+import {Type,isPresent} from 'angular2/src/facade/lang';
 import { KeyboardEvent} from 'angular2/src/facade/browser';
 import {CONST} from 'angular2/src/facade/lang';
-
-@CONST()
-export class KeyCodes {
-  @CONST() static ESCAPE = 27;
-  @CONST() static SPACE = 32;
-  @CONST() static UP = 38;
-  @CONST() static DOWN = 40;
-}
+import {KeyCodes} from '../keycode';
 
 @Injectable()
 export class DbpDialogo{
 
-  constructor(public cargador: DynamicComponentLoader){}
+  constructor(private cargador: DynamicComponentLoader,private injector: Injector){}
 
   public alert(elemento:ElementRef,dialogoConf:DbpDialogoAlertConf):Promise<DbpDialogoRef>{
       var dbpDialogoRef:DbpDialogoRef=new DbpDialogoRef();
       var ocultarPromesa=  this.cargador.loadNextToLocation(BlockDialogoComponent,elemento);
       return this.cargador.loadNextToLocation(DialogoAlertComponent,elemento).then(containerRef =>{
-        console.info('Antes de entrar',containerRef,dialogoConf);
-        dbpDialogoRef.contentRef=containerRef;
-        containerRef.instance.configuacion=dialogoConf;
-        containerRef.instance.dbpDialogoRef=dbpDialogoRef;
-        ocultarPromesa.then(ocultarRef=>{
-          dbpDialogoRef.cuandoCerramos.then((_)=>{ocultarRef.dispose();})
-        })
+        this.fill(containerRef,dbpDialogoRef,dialogoConf,ocultarPromesa);
         return dbpDialogoRef;
       });
   }
@@ -42,16 +26,38 @@ export class DbpDialogo{
       var dbpDialogoRef:DbpDialogoRef=new DbpDialogoRef();
       var ocultarPromesa=  this.cargador.loadNextToLocation(BlockDialogoComponent,elemento);
       return this.cargador.loadNextToLocation(DialogoConfirarComponent,elemento).then(containerRef =>{
-        console.info('Antes de entrar',containerRef,dialogoConf);
-        dbpDialogoRef.contentRef=containerRef;
-        containerRef.instance.configuacion=dialogoConf;
-        containerRef.instance.dbpDialogoRef=dbpDialogoRef;
-        ocultarPromesa.then(ocultarRef=>{
-          dbpDialogoRef.cuandoCerramos.then((_)=>{ocultarRef.dispose();})
-        })
+        this.fill(containerRef,dbpDialogoRef,dialogoConf,ocultarPromesa);
         return containerRef;
       });
   }
+
+  public abrir(tipo:Type,elemento:ElementRef,dialogoConf:DbpDialogoBaseConf):Promise<DbpDialogoRef>{
+    var dbpDialogoRef:DbpDialogoRef=new DbpDialogoRef();
+    var ocultarPromesa=  this.cargador.loadNextToLocation(BlockDialogoComponent,elemento);
+    var bindings = Injector.resolve([provide(DbpDialogoRef, {useValue: dbpDialogoRef})]);
+    return this.cargador.loadNextToLocation(DialogoComponenteComponent,elemento,bindings).then(containerRef =>{
+      this.fill(containerRef,dbpDialogoRef,dialogoConf,ocultarPromesa);
+      if(isPresent(tipo)){
+        console.info('La referencia al elemento superior',dbpDialogoRef.elementRefContenedor);
+        return this.cargador.loadNextToLocation(tipo,dbpDialogoRef.elementRefContenedor,bindings).then(contentRef=>{
+            dbpDialogoRef.cuandoCerramos.then((_)=>{contentRef.dispose();})
+            return dbpDialogoRef;
+        });
+      }else{
+          return dbpDialogoRef;
+      }
+    });
+  }
+
+  private fill(containerRef:ComponentRef,dbpDialogoRef:DbpDialogoRef,dialogoConf:DbpDialogoBaseConf,ocultarPromesa:Promise<ComponentRef>){
+    dbpDialogoRef.contentRef=containerRef;
+    containerRef.instance.configuacion=dialogoConf;
+    containerRef.instance.dbpDialogoRef=dbpDialogoRef;
+    ocultarPromesa.then(ocultarRef=>{
+      dbpDialogoRef.cuandoCerramos.then((_)=>{ocultarRef.dispose();})
+    });
+  }
+
 }
 /**
 * Es la referencia a un dialogo abierto.
@@ -59,6 +65,8 @@ export class DbpDialogo{
 export class DbpDialogoRef{
 
     _contentRef:ComponentRef; // Representa al componente de la ventana.
+    componenteDentro:ComponentRef; // Representa al componente que hay dentro de la ventana.
+    elementRefContenedor: ElementRef; // Es elemento ref del contenedor de la ventana modal.
     private isCerrado:Boolean; // Nos indica se venta se ha cerrado.
     contentRefDeferred:any; // Lo usaremos, para sincronizar los datos.
     cuandoCerramosDeferred:any; // Se lanzara cuando se cierre la ventana
@@ -80,9 +88,7 @@ export class DbpDialogoRef{
     }
 
     cerrar(resultado: any = null){
-      console.info('Lanzada la operacion de cerrar',this.isCerrado);
       this.contentRefDeferred.promise.then((_)=>{
-        console.info('entro');
         if(!this.isCerrado){
           this.isCerrado=true;
           this._contentRef.dispose(); // Esto cerrar la ventana modal.
@@ -90,26 +96,20 @@ export class DbpDialogoRef{
         }
       });
     }
-
+}
+export class DbpDialogoBaseConf{
+  constructor(public titulo:String=''){}
+}
+export class DbpDialogoAlertConf extends DbpDialogoBaseConf{
+  constructor(public mensaje:String,public titulo:String){super(titulo)}
 }
 
-export class DbpDialogoAlertConf{
-  constructor(
-    public mensaje:String,
-    public titulo:String = ''
-  ){
-
-  }
+export class DbpDialogoConfirmarConf extends DbpDialogoBaseConf{
+  constructor(public mensaje:String = '',public titulo:String,
+    public botonOk:String ='Ok',public botonCancelar:String ='Candelar' ){super(titulo) }
 }
-@Component({
-  selector:'dbp-dialogo-alert',
-  templateUrl:'/src/app/core/modal/dialogo.alert.html',
-  host:{
-      '(body:keydown)':'documentKeypress($event)'
-  }
-})
-export class DialogoAlertComponent{
-  public configuacion:DbpDialogoAlertConf;
+
+class AbstractDialogoComponent{
   public dbpDialogoRef:DbpDialogoRef;
   cerrarModal(){
       this.dbpDialogoRef.cerrar();
@@ -121,66 +121,71 @@ export class DialogoAlertComponent{
   }
 }
 
-
-export class DbpDialogoConfirmarConf{
-  constructor(public mensaje:String = '',public titulo:String ='',
-    public botonOk:String ='Ok',public botonCancelar:String ='Candelar' ){ }
+@Component({
+  selector:'dbp-dialogo-alert',
+  templateUrl:'/src/app/core/modal/dialogo.alert.html',
+  host:{'(body:keydown)':'documentKeypress($event)'}
+})
+export class DialogoAlertComponent extends AbstractDialogoComponent{
+  public configuacion:DbpDialogoAlertConf;
 }
 
 @Component({
   selector:'dbp-dialogo-confirmar',
   templateUrl:'/src/app/core/modal/dialogo.confirmar.html',
-  host:{
-      '(body:keydown)':'documentKeypress($event)'
-  }
+  host:{'(body:keydown)':'documentKeypress($event)'}
 })
-export class DialogoConfirarComponent{
+export class DialogoConfirarComponent extends AbstractDialogoComponent{
+
   public configuacion:DbpDialogoConfirmarConf;
-  public dbpDialogoRef:DbpDialogoRef;
   public okDeferred:any;
   public cancelarDeferred:any;
+
   constructor(){
+    super();
     this.okDeferred=PromiseWrapper.completer();
     this.cancelarDeferred=PromiseWrapper.completer();
   }
-  cerrarModal(){
-      this.dbpDialogoRef.cerrar();
-  }
 
-  documentKeypress(event:KeyboardEvent){
-    if (event.keyCode == KeyCodes.ESCAPE) {
-      this.dbpDialogoRef.cerrar();
-    }
-  }
+  get cuandoOk():Promise<any>{return this.okDeferred.promise;}
 
-  get cuandoOk():Promise<any>{
-    return this.okDeferred.promise;
-  }
-
-  get cuandoCancelar():Promise<any>{
-    return this.cancelarDeferred.promise;
-  }
+  get cuandoCancelar():Promise<any>{return this.cancelarDeferred.promise;}
 
   procesarOk(elemento=null){
-      console.info('Operacion OK');
-        this.okDeferred.resolve(elemento);
-        this.dbpDialogoRef.cuandoCerramos.then((_)=>{
-      });
+      this.dbpDialogoRef.cuandoCerramos.then((_)=>{this.okDeferred.resolve(elemento);});
       this.dbpDialogoRef.cerrar();
   }
   procesarCancelar(elemento=null){
-      console.info('Operación cancelar');
-      this.dbpDialogoRef.cuandoCerramos.then((_)=>{
-        this.cancelarDeferred.resolve(elemento);
-      });
+      this.dbpDialogoRef.cuandoCerramos.then((_)=>{this.cancelarDeferred.resolve(elemento);});
       this.dbpDialogoRef.cerrar();
   }
 }
+// TODO: Usamos la directiva, para pasarle el elementRef, superior al contenedor para poder inyectar algo. Lo suyo seria poder obtenerlo a traves del framework.
+@Directive({
+  selector: 'componente',
+})
+class MdDialogContent {
+  constructor(dbpDialogo:DbpDialogoRef, elementRef: ElementRef) {
+    dbpDialogo.elementRefContenedor=elementRef;
+  }
+}
 
+@Component({
+  selector:'dbp-dialogo-component',
+  templateUrl:'/src/app/core/modal/dialogo.componente.html',
+  directives:[MdDialogContent],
+  host:{'(body:keydown)':'documentKeypress($event)'}
+})
+export class DialogoComponenteComponent extends AbstractDialogoComponent{
+  public contentRef:ElementRef;
+  constructor(dbpDialogo:DbpDialogoRef){
+    super();
+    this.contentRef=null;
+  }
+}
 
 @Component({
   selector:'dbp-dialogo-block',
   template:'<div class="modal-backdrop fade in" ></div>'
 })
-export class BlockDialogoComponent{
-}
+export class BlockDialogoComponent{}

@@ -1,7 +1,9 @@
-import {Component,ElementRef} from 'angular2/core';
+import {Component,ElementRef,DynamicComponentLoader,Injector,ChangeDetectorRef} from 'angular2/core';
 import {ModalDirective} from '../../../directives/comun/modal/modal.directive'
 import {BlockComponent} from '../../comun/block.component';
-import {DbpDialogo,DbpDialogoAlertConf,DbpDialogoConfirmarConf} from '../../../core/modal/dialogo';
+import {DbpDialogo,DbpDialogoAlertConf,DbpDialogoConfirmarConf,DbpDialogoBaseConf} from '../../../core/modal/dialogo';
+import {About} from '../../about/about.component';
+import {AsientoComponent} from '../../contabilidad/asientos/asiento.component';
 @Component({
   selector:'ejemplo-modal',
   templateUrl:'/src/app/components/ejemplos/modal/modal.html',
@@ -9,10 +11,10 @@ import {DbpDialogo,DbpDialogoAlertConf,DbpDialogoConfirmarConf} from '../../../c
 })
 export class ModalComponent{
 
-  constructor(private elemento:ElementRef,private dialogo:DbpDialogo){}
+  constructor(private elemento:ElementRef,private dialogo:DbpDialogo,private cargador: DynamicComponentLoader,private injector: Injector){}
 
   abrirModal(){
-    this.dialogo.alert(this.elemento,new DbpDialogoAlertConf('Mensaje','Titulo')).then(dialogoRef=>{
+    this.dialogo.alert(this.elemento,new DbpDialogoAlertConf('Mensajeasdaf a ag ggds hfdhsdfhsdghsgfhjsgfjgsfjgfjghjhdjhgjhgj h hg hjj djdhgj hdjd hfg jfghj fd jgj','Titulo')).then(dialogoRef=>{
       dialogoRef.cuandoCerramos.then((_)=>{console.info('Se ha cerrado el alert')});
       return dialogoRef;
     });
@@ -23,5 +25,26 @@ export class ModalComponent{
         dialogoComponent.instance.cuandoOk.then((_)=>{console.info(' despues Ok 234');});
         dialogoComponent.instance.cuandoCancelar.then((_)=>{console.info(' despues cancelar 234');});
     });
+  }
+  abrirComponente(){
+    this.dialogo.abrir(EjemploFormularioComponent,this.elemento,new DbpDialogoBaseConf('Ejemplo para')).then(dialogoRef=>{
+      return dialogoRef;
+    });
+  }
+
+  abrirComponenteComplejo(){
+    this.dialogo.abrir(AsientoComponent,this.elemento,new DbpDialogoBaseConf('Ejemplo para')).then(dialogoRef=>{
+      return dialogoRef;
+    });
+  }
+}
+@Component({
+  selector:'ejemplo-formulario',
+  templateUrl:'/src/app/components/ejemplos/modal/formulario.html'
+})
+export class EjemploFormularioComponent{
+  public dato:String='antes';
+  constructor(cambios:ChangeDetectorRef){
+    this.dato="eco";
   }
 }
