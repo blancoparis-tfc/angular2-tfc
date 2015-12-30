@@ -1,6 +1,6 @@
 import {
      DynamicComponentLoader,Directive,Host,SkipSelf,forwardRef,Injectable,
-     ElementRef,Injector,provide,ViewEncapsulation,Component,ComponentRef}
+     ElementRef,Injector,provide,ViewEncapsulation,Component,ComponentRef,Provider}
      from 'angular2/core';
 import {PromiseWrapper,Promise} from 'angular2/src/facade/async';
 import {Type,isPresent} from 'angular2/src/facade/lang';
@@ -18,6 +18,7 @@ export class DbpDialogo{
       var ocultarPromesa=  this.cargador.loadNextToLocation(BlockDialogoComponent,elemento);
       return this.cargador.loadNextToLocation(DialogoAlertComponent,elemento).then(containerRef =>{
         this.fill(containerRef,dbpDialogoRef,dialogoConf,ocultarPromesa);
+        dbpDialogoRef.contentRef=containerRef;
         return dbpDialogoRef;
       });
   }
@@ -27,35 +28,39 @@ export class DbpDialogo{
       var ocultarPromesa=  this.cargador.loadNextToLocation(BlockDialogoComponent,elemento);
       return this.cargador.loadNextToLocation(DialogoConfirarComponent,elemento).then(containerRef =>{
         this.fill(containerRef,dbpDialogoRef,dialogoConf,ocultarPromesa);
+        dbpDialogoRef.contentRef=containerRef;
         return containerRef;
       });
   }
 
-  public abrir(tipo:Type,elemento:ElementRef,dialogoConf:DbpDialogoBaseConf):Promise<DbpDialogoRef>{
+  public abrir(tipo:Type,elemento:ElementRef,dialogoConf:DbpDialogoBaseConf,providers: Array<Type | Provider | any[]> = []):Promise<DbpDialogoRef>{
     var dbpDialogoRef:DbpDialogoRef=new DbpDialogoRef();
     var ocultarPromesa=  this.cargador.loadNextToLocation(BlockDialogoComponent,elemento);
-    var bindings = Injector.resolve([provide(DbpDialogoRef, {useValue: dbpDialogoRef})]);
+    providers.push(provide(DbpDialogoRef, {useValue: dbpDialogoRef}))
+    var bindings =  Injector.resolve(providers);
     return this.cargador.loadNextToLocation(DialogoComponenteComponent,elemento,bindings).then(containerRef =>{
       this.fill(containerRef,dbpDialogoRef,dialogoConf,ocultarPromesa);
       if(isPresent(tipo)){
-        console.info('La referencia al elemento superior',dbpDialogoRef.elementRefContenedor);
         return this.cargador.loadNextToLocation(tipo,dbpDialogoRef.elementRefContenedor,bindings).then(contentRef=>{
             dbpDialogoRef.cuandoCerramos.then((_)=>{contentRef.dispose();})
+            dbpDialogoRef.componenteDentro=contentRef;
+            dbpDialogoRef.contentRef=containerRef;
             return dbpDialogoRef;
         });
       }else{
+          dbpDialogoRef.contentRef=containerRef;
           return dbpDialogoRef;
       }
     });
   }
 
   private fill(containerRef:ComponentRef,dbpDialogoRef:DbpDialogoRef,dialogoConf:DbpDialogoBaseConf,ocultarPromesa:Promise<ComponentRef>){
-    dbpDialogoRef.contentRef=containerRef;
     containerRef.instance.configuacion=dialogoConf;
     containerRef.instance.dbpDialogoRef=dbpDialogoRef;
     ocultarPromesa.then(ocultarRef=>{
       dbpDialogoRef.cuandoCerramos.then((_)=>{ocultarRef.dispose();})
     });
+
   }
 
 }

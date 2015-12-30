@@ -1,7 +1,7 @@
-import {Component,ElementRef,DynamicComponentLoader,Injector,ChangeDetectorRef} from 'angular2/core';
+import {Component,ElementRef,DynamicComponentLoader,Injector,ChangeDetectorRef,provide} from 'angular2/core';
 import {ModalDirective} from '../../../directives/comun/modal/modal.directive'
 import {BlockComponent} from '../../comun/block.component';
-import {DbpDialogo,DbpDialogoAlertConf,DbpDialogoConfirmarConf,DbpDialogoBaseConf} from '../../../core/modal/dialogo';
+import {DbpDialogo,DbpDialogoAlertConf,DbpDialogoConfirmarConf,DbpDialogoBaseConf,DbpDialogoRef} from '../../../core/modal/dialogo';
 import {About} from '../../about/about.component';
 import {AsientoComponent} from '../../contabilidad/asientos/asiento.component';
 @Component({
@@ -27,7 +27,12 @@ export class ModalComponent{
     });
   }
   abrirComponente(){
-    this.dialogo.abrir(EjemploFormularioComponent,this.elemento,new DbpDialogoBaseConf('Ejemplo para')).then(dialogoRef=>{
+    var id=[provide(ParamId, {useValue:new ParamId(2)})]
+    this.dialogo.abrir(EjemploFormularioComponent,this.elemento,new DbpDialogoBaseConf('Ejemplo para'),id).then(dialogoRef=>{
+      console.info('Componente de dentro',dialogoRef.componenteDentro);
+      dialogoRef.cuandoCerramos.then((_)=>{
+        console.info('Se cerro el componente',dialogoRef.componenteDentro.instance);
+      });
       return dialogoRef;
     });
   }
@@ -38,13 +43,23 @@ export class ModalComponent{
     });
   }
 }
+
+export class ParamId{
+  constructor(public id:Number){}
+}
+
 @Component({
   selector:'ejemplo-formulario',
   templateUrl:'/src/app/components/ejemplos/modal/formulario.html'
 })
 export class EjemploFormularioComponent{
   public dato:String='antes';
-  constructor(cambios:ChangeDetectorRef){
-    this.dato="eco";
+  constructor(id:ParamId,public dbpDialogoRef:DbpDialogoRef){
+    console.info('El id',id,dbpDialogoRef);
+    this.dato="eco"+id.id;
+  }
+
+  ok(){
+    this.dbpDialogoRef.cerrar();
   }
 }
